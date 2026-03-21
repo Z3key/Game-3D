@@ -8,10 +8,14 @@ export const useCharacterStore = create((set) => ({
     setSpeed: (value) => set(() => ({ speed: value })),
 
     position: [0, 0, 0],
-    setPosition: (pos) => set((state) => ({
-        position: typeof pos == 'function' ? pos(state.position) : pos
-    })),
-
     rotation: 0,
-    setRotation: (angle) => set({ rotation: angle }),
+    setPosition: (pos) => 
+        set((state) => ({
+            position: typeof pos == 'function' ? pos(state.position) : pos,
+        })),
+    setRotation: (angle) => set(() => ({ rotation: angle })),
+
+    goalReached: false,
+    setGoalReached: (value) => set(() => ({ goalReached: value })),
+
 }));
