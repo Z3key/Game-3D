@@ -1,5 +1,6 @@
 import { useCharacterStore } from "../store/useCharacterStore";
 import { useEffect, useRef } from "react";
+import { CHARACTER_RADIUS, GOAL_POSITION, GOAL_HALF_SIZE, GOAL_TOP_Y } from '../gameConstants.js'
 
 const MOVE_STEP = 0.4;
 const ROTATE_STEP = Math.PI / 32; // 5.625 degrees
@@ -66,6 +67,17 @@ export default function useKeyboardControls() {
                 moved = true;
             }
 
+            let nextX = x + dx;
+            let nextZ = x + dz;
+            const goalOffsetX = Math.abs((GOAL_POSITION[0]) - (nextX));
+            const goalOffsetZ = Math.abs((GOAL_POSITION[2]) - (nextZ));
+
+            const overlapsGoal = goalOffsetX < GOAL_HALF_SIZE + CHARACTER_RADIUS && goalOffsetZ < GOAL_HALF_SIZE + CHARACTER_RADIUS;
+
+            if (overlapsGoal) {
+                nextX = x;
+                nextZ = z;
+            }
                   // Якщо жодна клавіша руху не натиснута - повертаємо персонажа в стан спокою
             if (!moved) {
                 setAction('idle');

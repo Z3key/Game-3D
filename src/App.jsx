@@ -1,9 +1,9 @@
-import { useState } from 'react'
+// import { useState } from 'react'
 import ThreeScene from './components/ThreeScene'
 import { useCharacterStore } from './store/useCharacterStore.js'
 
 function App() {
-  const [count, setCount] = useState(0)
+  // const [count, setCount] = useState(0)
   const goalReached = useCharacterStore((s) => s.goalReached);
 
   return (

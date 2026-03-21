@@ -12,6 +12,8 @@ const ACTION_MAP = {
     jump: 'Jump',
 };
 
+const MODEL_FACING_OFFSET = Math.PI;
+
 export default function Character() {
     const group = useRef();
 
@@ -86,7 +88,7 @@ export default function Character() {
     useFrame(() => {
         if (!group.current) return;
         group.current.position.set(position[0], position[1], position[2]);
-        group.current.rotation.y = rotation;
+        group.current.rotation.y = rotation + MODEL_FACING_OFFSET;
     });
 
     const clonedCharacter = useMemo(() => {

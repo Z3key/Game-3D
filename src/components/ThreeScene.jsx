@@ -6,23 +6,34 @@ import Character from './Character.jsx'
 import { useCharacterStore } from '../store/useCharacterStore.js';
 import useKeyboardControls from '../hooks/useKeyboardControls.js'
 import { Environment } from '@react-three/drei';
+import { GOAL_POSITION, GOAL_SIZE, GOAL_HEIGHT, GOAL_HALF_SIZE, GOAL_TOP_Y } from '../gameConstants.js';
 
 function Goal() {
   const mesh = useRef();
   const setGoalReached = useCharacterStore((s) => s.setAction);
   const position = useCharacterStore((s) => s.position);
+  const goalReached = useCharacterStore((s) => s.goalReached)
 
   useFrame (() => {
     if (!mesh.current) return;
-    const [px, , pz] = position;
-    const dx = mesh.current.position.x - px;
-    const dz = mesh.current.position.z - pz;
-    if(dx * dx + dz * dz < 4) setGoalReached(true);
+    const [px, py, pz] = position;
+    const dx = GOAL_POSITION[0] - px;
+    const dz = GOAL_POSITION[2] - pz;
+    const absDx = Math.abs(dx);
+    const absDz = Math.abs(dz);
+    const isBesideGoal = py < GOAL_TOP_Y - 0.25;
+    const touchesGoalSide = absDx < GOAL_HALF_SIZE + 0.45 && absDz < GOAL_HALF_SIZE + 0.45;
+
+    if(!goalReached && isBesideGoal && touchesGoalSide) {
+      setGoalReached(true);
+    }
+
+
   });
 
   return (
-    <mesh ref={mesh} position={[10, 0.5, 10]} castShadow receiveShadow>
-      <boxGeometry args ={[1, 1, 1]}/>
+    <mesh ref={mesh} position={GOAL_POSITION} castShadow receiveShadow>
+      <boxGeometry args ={[GOAL_SIZE, GOAL_HEIGHT, GOAL_SIZE]}/>
       <meshStandardMaterial color="gold"/>
     </mesh>
   );
@@ -83,9 +94,9 @@ export default function ThreeScene() {
           shadow-camera-bottom={-20}
       />
 
+      <CameraController />
       <Floor />
       <Goal />
-      <CameraController />
       <Character />
 
       <gridHelper args={[40, 40, '#444', '#333']} position={[0, 0.01, 0]}/>
