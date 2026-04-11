@@ -1,11 +1,10 @@
 import React, { useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { OrbitControls } from '@react-three/drei';
 import Character from './Character.jsx'
 import { useCharacterStore } from '../store/useCharacterStore.js';
 import useKeyboardControls from '../hooks/useKeyboardControls.js'
-import { Environment } from '@react-three/drei';
+import { Environment, OrbitControls } from '@react-three/drei';
 import { GOAL_POSITION, GOAL_SIZE, GOAL_HEIGHT, GOAL_HALF_SIZE, GOAL_TOP_Y } from '../gameConstants.js';
 
 function Goal() {
@@ -43,10 +42,25 @@ function Floor() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
       <planeGeometry args={[40, 40]} />
-      <meshStandardMaterial color="#2d5a27" />
+      <meshStandardMaterial map={texture} />
+      {/* <meshStandardMaterial color="#2d5a27" /> */}
     </mesh>
   );
 }
+
+function BoxRoom() {
+  return (
+    <mesh position={[0, 20, 0]}>
+      <boxGeometry args ={[40, 40, 40]} />
+      <meshStandardMaterial 
+        // map={}
+        envMapIntensity={1}
+        side={THREE.BackSide}
+        
+      />
+    </mesh>
+  );
+};
 
 function CameraController() {
   const position = useCharacterStore((s) => s.position);
@@ -76,14 +90,17 @@ export default function ThreeScene() {
           // background: "url(/Sky.jpg) center/cover"
       }}
       shadows
-      camera={{ position: [0, 5, 10], fov: 80 }}
+      camera={{ position: [0, 7, 10], fov: 40 }}
     >
-      <Environment files="/sky2.hdr" background />
+      {/* <Environment files="HDR/pergola_walkaway_4k.hdr" background /> */}
+      {/* <Environment files="/sky2.hdr" background /> */}
+      <OrbitControls />
       {/* <color attach="background" args={["#759bc7"]} /> */}
       <ambientLight intensity={0.6} />
       {/* <pointLight position={[10, 10, 10]} /> */}
       <directionalLight
-          position={[10, 15, 10]}
+          position={[5, 5, 5]}
+          // position={[10, 15, 10]}
           intensity={1.2}
           castShadow
           shadow-mapSize={[2048, 2048]}
@@ -95,7 +112,8 @@ export default function ThreeScene() {
       />
 
       <CameraController />
-      <Floor />
+      <BoxRoom />
+      {/* <Floor /> */}
       <Goal />
       <Character />
 

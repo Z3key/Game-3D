@@ -8,7 +8,7 @@ function App() {
 
   return (
     <>
-        <h1>Hello, React3D</h1>
+        <h1>He's mad as hell 💥💥</h1>
         <p>Goal reached: {goalReached ? 'Yes' : 'No'}</p>
         <ThreeScene />
     </>
