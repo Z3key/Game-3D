@@ -1,6 +1,7 @@
 // import { useState } from 'react'
 import ThreeScene from './components/ThreeScene'
 import { useCharacterStore } from './store/useCharacterStore.js'
+import GameUi from './components/GameUi.jsx'
 
 function App() {
   // const [count, setCount] = useState(0)
@@ -8,9 +9,10 @@ function App() {
 
   return (
     <>
-        <h1>He's mad as hell 💥💥</h1>
-        <p>Goal reached: {goalReached ? 'Yes' : 'No'}</p>
+        {/* <h1>This user does not believe in humans 👽</h1>
+        <p>Goal reached: {goalReached ? 'Yes' : 'No'}</p> */}
         <ThreeScene />
+        <GameUi />
     </>
   )
 }

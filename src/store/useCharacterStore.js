@@ -18,4 +18,8 @@ export const useCharacterStore = create((set) => ({
     goalReached: false,
     setGoalReached: (value) => set(() => ({ goalReached: value })),
 
+    cameraMode: 'follow',
+    setCameraMode: (mode) => set(() => ({ cameraMode: mode })),
+    
+
 }));

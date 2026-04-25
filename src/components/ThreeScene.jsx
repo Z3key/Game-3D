@@ -1,11 +1,12 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import Character from './Character.jsx'
 import { useCharacterStore } from '../store/useCharacterStore.js';
 import useKeyboardControls from '../hooks/useKeyboardControls.js'
-import { Environment, OrbitControls } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import { GOAL_POSITION, GOAL_SIZE, GOAL_HEIGHT, GOAL_HALF_SIZE, GOAL_TOP_Y } from '../gameConstants.js';
+import Environment from './Environment.jsx'
 
 function Goal() {
   const mesh = useRef();
@@ -62,10 +63,11 @@ function BoxRoom() {
   );
 };
 
-function CameraController() {
+function FollowCamera() {
   const position = useCharacterStore((s) => s.position);
   const rotation = useCharacterStore((s) => s.rotation);
   const { camera } = useThree();
+
   useFrame(() => {
     const [x, y, z] = position;
     const dist = 20;
@@ -78,15 +80,65 @@ function CameraController() {
     camera.lookAt(x, y + 1.5, z);
     camera.updateProjectionMatrix();
   });
+
   return null;
-}
+};
+
+function OrbitCamera() {
+  const { camera } = useThree();
+  const controlsRef = useRef();
+  const initialized = useRef(false);
+
+  useFrame(() => {
+    if (!initialized.current && controlsRef.current) {
+      const{ position } = useCharacterStore.getState();
+      const [x, y, z] = position;
+
+      camera.position.set(x + 5, y + 5, z + 7);
+      controlsRef.current.target.set(x, y + 1, z);
+      controlsRef.current.update();
+      initialized.current = true;
+    };
+  });
+
+  return (
+    <OrbitControls 
+      ref={controlsRef}
+      minPolarAngle={0.1}
+      maxPolarAngle={Math.PI / 2 - 0.05}
+      minDistance={2}
+      maxDistance={20}
+      enableDamping
+      dampingFactor={0.08}
+    />
+  );
+};
+
+function CameraSwitch() {
+  const setCameraMode = useCharacterStore((s) => s.setCameraMode);
+  const cameraMode = useCharacterStore((s => s.cameraMode));
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.code === 'KeyV') {
+        setCameraMode(cameraMode === 'follow' ? 'orbit' : 'follow');        
+      };
+    };
+    window.addEventListener('keydown', onKey);
+    return () => removeEventListener('keydown', onKey);
+  }, [cameraMode, setCameraMode]);
+
+  return null;
+};
 
 export default function ThreeScene() {
   useKeyboardControls();
+  const cameraMode = useCharacterStore((s) => s.cameraMode)
   return (
     <Canvas
         style={{
-          height: 600,
+          height: 1000,
+          width: 2025,
           // background: "url(/Sky.jpg) center/cover"
       }}
       shadows
@@ -94,7 +146,7 @@ export default function ThreeScene() {
     >
       {/* <Environment files="HDR/pergola_walkaway_4k.hdr" background /> */}
       {/* <Environment files="/sky2.hdr" background /> */}
-      <OrbitControls />
+      {/* <OrbitControls /> */}
       {/* <color attach="background" args={["#759bc7"]} /> */}
       <ambientLight intensity={0.6} />
       {/* <pointLight position={[10, 10, 10]} /> */}
@@ -111,13 +163,16 @@ export default function ThreeScene() {
           shadow-camera-bottom={-20}
       />
 
-      <CameraController />
-      <BoxRoom />
+      <CameraSwitch />
+      {cameraMode === 'follow' ? < FollowCamera /> : <OrbitControls/>};
+
+      {/* <BoxRoom /> */}
       {/* <Floor /> */}
+      <Environment />
       <Goal />
       <Character />
 
-      <gridHelper args={[40, 40, '#444', '#333']} position={[0, 0.01, 0]}/>
+      {/* <gridHelper args={[40, 40, '#444', '#333']} position={[0, 0.01, 0]}/> */}
 
       {/* <OrbitControls /> */}
     </Canvas>
