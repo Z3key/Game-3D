@@ -21,7 +21,7 @@ export default function Character() {
 
     const idleFBX = useFBX('/models/Idle.fbx');
     const walkFBX = useFBX('/models/Sneak-Walk.fbx');
-    const jumpFBX = useFBX('/models/Jumping.fbx');
+    const jumpFBX = useFBX('/models/Rifle Jump.fbx');
     const sitFBX = useFBX('/models/Sitting.fbx');
     const sleepFBX = useFBX('/models/Sleeping.fbx');
 
