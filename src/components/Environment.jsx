@@ -3,6 +3,8 @@ import { useState, useRef } from 'react';
 import React from 'react';
 import { xor } from 'three/tsl';
 import * as THREE from 'three';
+import { STAIRS_COUNT, STAIRS_CX, STAIRS_W, STAIRS_H, STAIRS_D, STAIRS_Z, COLLECTIBLES } from '../gameConstants';
+import { useCharacterStore } from '../store/useCharacterStore';
 
 function Box({ position, args, color, castShadow, receiveShadow }) {
     return (
@@ -378,12 +380,12 @@ function Mezzanine() {
 
 // ДОДАНО: Компонент StairsToMezzanine — 10 сходинок що піднімаються від підлоги до платформи мезоніну
 function StairsToMezzanine() {
-    const stepCount = 10; // Кількість сходинок (10 × 0.5м = 5 одиниць висоти до рівня мезоніну)
-    const stepH = 0.5;    // Висота кожної сходинки
-    const stepD = 0.5;    // Глибина кожної сходинки (крок по z)
-    const stepW = 2.0;    // Ширина сходів
-    const startZ = 1.5;   // Z-координата нижньої сходинки (від'ємний напрям — до мезоніну)
-    const cx = -3.0;      // X-центр сходів (між двома несучими колонами мезоніну)
+    const stepCount = STAIRS_COUNT; // Кількість сходинок (10 × 0.5м = 5 одиниць висоти до рівня мезоніну)
+    const stepH = STAIRS_H;    // Висота кожної сходинки
+    const stepD = STAIRS_D;    // Глибина кожної сходинки (крок по z)
+    const stepW = STAIRS_W;    // Ширина сходів
+    const startZ = STAIRS_Z;   // Z-координата нижньої сходинки (від'ємний напрям — до мезоніну)
+    const cx = STAIRS_CX;      // X-центр сходів (між двома несучими колонами мезоніну)
 
     return (
         <group> {/* Загальна група сходів */}
@@ -421,6 +423,82 @@ function StairsToMezzanine() {
     );
 }
 
+function CollectibleItem({ id, position }) {
+    // Підписуємось на масив зібраних предметів у глобальному сторі.
+    // Компонент перерендерується лише коли collectedItems змінюється.
+    const collectedItems = useCharacterStore((s) => s.collectedItems);
+
+
+    // Ref на mesh всередині групи — потрібен, щоб мутувати rotation/position напряму
+    // в useFrame без ре-рендеру React (дешевше і без мерехтіння)
+    const meshRef = useRef();
+
+
+    // Перевірка: чи вже зібраний цей предмет?
+    const isCollected = collectedItems.includes(id);
+
+
+    // useFrame викликається кожен кадр (~60 разів/сек).
+    // Тут анімуємо обертання та плавне покачування по Y.
+    useFrame(({ clock }) => {
+        if (!meshRef.current || isCollected) return; // нічого не робимо якщо зібрано або меш не готовий
+
+
+        meshRef.current.rotation.y += 0.028;   // безперервне обертання навколо вертикальної осі
+        meshRef.current.rotation.x += 0.012;   // легке обертання по нахилу — для "живості"
+
+
+        // sin хвиля → плавне підстрибування відносно групи (group стоїть нерухомо на position)
+        meshRef.current.position.y = Math.sin(clock.elapsedTime * 2.5) * 0.09;
+    });
+
+
+    // Якщо предмет зібрано — повертаємо null: компонент зникає зі сцени без анімації.
+    // React Three Fiber відразу прибирає mesh та pointLight з GPU-сцени.
+    if (isCollected) return null;
+
+
+    return (
+        // group стоїть нерухомо на position (з COLLECTIBLES).
+        // Все що всередині — позиціонується відносно group.
+        <group position={position}>
+            {/* Геометрія предмета — октаедр (два піраміди, зрощені основами) */}
+            <mesh ref={meshRef} castShadow>
+                <octahedronGeometry args={[0.2, 0]} /> {/* радіус 0.2, subdivision 0 = 8 трикутників */}
+                <meshStandardMaterial
+                    color="#FFD700"           // золотий колір
+                    emissive="#FF8C00"        // власне свічення — помаранчево-золотий
+                    emissiveIntensity={0.55}  // інтенсивність свічення матеріалу
+                    metalness={0.9}           // майже металевий
+                    roughness={0.1}           // дуже гладкий — блищить
+                />
+            </mesh>
+
+
+            {/* Маленький ореол світла навколо предмета — робить його помітним здалеку */}
+            <pointLight
+                position={[0, 0.25, 0]}    // трохи вище центру меша
+                intensity={0.9}            // неяскраве — щоб не засвічувало всю кімнату
+                distance={2.0}             // радіус дії 2 одиниці — лише навколо предмета
+                color="#FFD060"            // теплий золотавий
+            />
+        </group>
+    );
+}
+
+function Collectibles() {
+    return (
+        <>
+            {COLLECTIBLES.map((item) => (
+                <CollectibleItem
+                    key={item.id}          // React потребує унікальний key для списку
+                    id={item.id}           // передаємо id щоб звірити з collectedItems
+                    position={item.pos}    // позиція у світі з gameConstants
+                />
+            ))}
+        </>
+    );
+}
 
 export default function Environment() {
     return (
@@ -464,6 +542,7 @@ export default function Environment() {
             <MezzanineLamp position={[-4.5, 5.1, -6.8]}/>
             <Mezzanine />
             <StairsToMezzanine />
+            <Collectibles />
             
         </group>
 

@@ -142,7 +142,7 @@ export default function ThreeScene() {
           // background: "url(/Sky.jpg) center/cover"
       }}
       shadows
-      camera={{ position: [0, 7, 10], fov: 40 }}
+      camera={{ position: [0, 7, 5], fov: 40 }}
     >
       {/* <Environment files="HDR/pergola_walkaway_4k.hdr" background /> */}
       {/* <Environment files="/sky2.hdr" background /> */}
